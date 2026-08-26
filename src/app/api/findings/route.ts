@@ -1,10 +1,10 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getLatestMockAnalysis } from "@/lib/govgraph/analysis-service";
+import { getLatestAnalysis } from "@/lib/govgraph/data-provider";
 import { parseFindingQuery, queryFindings } from "@/lib/govgraph/finding-query";
 
 export async function GET(request: NextRequest) {
-  const analysis = await getLatestMockAnalysis();
+  const analysis = await getLatestAnalysis();
   const page = queryFindings(analysis, parseFindingQuery(request.nextUrl.searchParams));
 
   return NextResponse.json({

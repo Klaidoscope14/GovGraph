@@ -46,6 +46,11 @@ curl "http://127.0.0.1:3000/api/findings?severity=high&page=1&page_size=3"
 curl http://127.0.0.1:3000/api/remediation
 curl http://127.0.0.1:3000/api/report
 curl http://127.0.0.1:3000/
+curl http://127.0.0.1:3000/findings
+curl http://127.0.0.1:3000/graph
+curl http://127.0.0.1:3000/remediation
+curl http://127.0.0.1:3000/reports
+curl http://127.0.0.1:3000/settings
 ```
 
 ## Current Results
@@ -65,6 +70,8 @@ curl http://127.0.0.1:3000/
 - `/api/remediation` returns 4 remediation previews.
 - `/api/report` returns CSV output.
 - `/` returns the dashboard HTML with HTTP 200.
+- `/findings`, `/graph`, `/remediation`, `/reports`, and `/settings` render as
+  separate feature pages.
 
 ## Known Notes
 
@@ -90,6 +97,12 @@ security audit.
 
 Running `next dev` generated `AGENTS.md` and `CLAUDE.md` in the app folder.
 They contain Next.js version guidance and are expected with this Next release.
+
+### Next Dev Type Cache
+
+This environment produced duplicate files inside `.next/dev/types` with names
+ending in ` 2.ts`. `tsconfig.json` excludes those duplicate generated files so
+`npm run check` remains stable.
 
 ### Localhost Sandbox Note
 

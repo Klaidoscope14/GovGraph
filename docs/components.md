@@ -122,24 +122,47 @@ short-lived cached analysis, while `POST /api/scan` refreshes the demo scan.
 `/api/findings` supports `severity`, `status`, `page`, and `page_size` query
 parameters. `/api/report` uses the same filters for CSV export.
 
-## 11. Frontend Dashboard
+## 11. Data Provider
 
-The dashboard is the main demo surface. It shows:
+The Data Provider is the boundary between product pages and analysis data.
+Pages call `getLatestAnalysis()` instead of importing fixture data directly.
 
-- repo and scan identity
-- overall risk metrics
-- interactive data-flow graph
-- policy distribution chart
-- finding list
-- remediation preview cards
-- CSV export
+Current status: implemented in `src/lib/govgraph/data-provider.ts`. It uses the
+mock provider today. Add a LatentGraph/Postgres provider here later so the UI
+does not need to change.
 
-Current status: implemented in `src/components/ComplianceDashboard.tsx`.
-The dashboard avoids repeated linear lookups when rendering graph edges,
-charts, and remediation cards, which keeps the current UI path healthier as the
-graph grows.
+## 12. Product Shell
 
-## 12. Graph Store
+The Product Shell gives GovGraph one shared navigation system. It keeps the app
+from feeling like one crowded screen.
+
+Current routes:
+
+- `/`: executive overview
+- `/findings`: finding triage
+- `/graph`: sensitive data-flow explorer
+- `/remediation`: confidence-gated fixes
+- `/reports`: CSV and audit export
+- `/settings`: provider and integration status
+
+Current status: implemented in `src/components/AppShell.tsx` and `src/app/*`.
+
+## 13. Frontend Feature Panels
+
+Feature panels are reusable UI pieces used by the pages:
+
+- `MetricsGrid`: risk summary tiles
+- `DataFlowGraphPanel`: interactive React Flow graph
+- `PolicyDistributionPanel`: severity distribution and top risk factors
+- `FindingsWorkspace`: triage list with severity filtering
+- `RemediationWorkspace`: fix preview cards
+
+Current status: implemented in `src/components/analysis/*` and composed by
+`src/components/ComplianceDashboard.tsx`. The graph, chart, and remediation
+panels avoid repeated linear lookups, which keeps the current UI path healthier
+as the graph grows.
+
+## 14. Graph Store
 
 The Graph Store persists normalized nodes, edges, and flows. For hackathon
 scale, Postgres JSONB is enough. A graph database can be a roadmap item.
@@ -148,7 +171,7 @@ Current status: Prisma schema includes `GraphSnapshot`, but route handlers still
 use in-memory mock data. The analysis service now exposes a cached latest-scan
 read path that should later be backed by this table.
 
-## 13. Audit Ledger
+## 15. Audit Ledger
 
 The audit ledger records who scanned, what was found, what was fixed, and what
 was accepted or dismissed.
@@ -158,14 +181,14 @@ This is important for GDPR Article 30 and SOC2 evidence.
 Current status: Prisma schema includes `AuditEvent`. UI and API actions for the
 ledger are still planned.
 
-## 14. CI Gate
+## 16. CI Gate
 
 The CI gate runs analysis on pull requests and flags only new violations. This
 turns GovGraph from a one-time report into continuous compliance.
 
 Current status: planned. A before/after demo view is a strong next step.
 
-## 15. GitHub Integration
+## 17. GitHub Integration
 
 GitHub integration will support repo ingestion, PR previews, optional real PR
 creation, and CI comments.

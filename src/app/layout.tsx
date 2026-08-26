@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { AppShell } from "@/components/AppShell";
+import { productConfig } from "@/lib/govgraph/product-config";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "GovGraph",
-  description: "Continuous source-code-level compliance for sensitive data flows."
+  title: productConfig.name,
+  description: productConfig.tagline
 };
 
 export default function RootLayout({
@@ -13,7 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <AppShell>{children}</AppShell>
     </html>
   );
 }

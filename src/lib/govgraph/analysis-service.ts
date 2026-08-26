@@ -2,6 +2,7 @@ import { mockLatentGraphFixture } from "@/data/mock-latentgraph";
 import { createSingleFlight } from "@/lib/concurrency/batch";
 import { normalizeLatentGraphFixture } from "./normalizer";
 import { evaluatePolicies, starterRules } from "./policies";
+import { productConfig } from "./product-config";
 import { buildRemediationPreviews } from "./remediation";
 import { scoreFlows } from "./risk-scoring";
 import type { ComplianceSummary, GovGraphAnalysis, Severity } from "./types";
@@ -38,10 +39,10 @@ export function runMockAnalysis(): GovGraphAnalysis {
 
   return {
     repository: {
-      id: "repo_legacy_claims",
-      name: "LegacyClaims",
-      branch: "main",
-      commitSha: "9f34c2a",
+      id: productConfig.defaultRepository.id,
+      name: productConfig.defaultRepository.name,
+      branch: productConfig.defaultRepository.branch,
+      commitSha: productConfig.defaultRepository.commitSha,
       scannedAt: new Date().toISOString()
     },
     nodes: graph.nodes,

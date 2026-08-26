@@ -1,12 +1,12 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getLatestMockAnalysis, refreshMockAnalysis } from "@/lib/govgraph/analysis-service";
+import { getLatestAnalysis, refreshAnalysis } from "@/lib/govgraph/data-provider";
 import { enqueueMockScanJob, getLatestScanJob } from "@/lib/govgraph/scan-jobs";
 
 export async function GET() {
   const latestJob = getLatestScanJob();
   return NextResponse.json({
-    ...(await getLatestMockAnalysis()),
+    ...(await getLatestAnalysis()),
     latestJob
   });
 }
@@ -21,5 +21,5 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  return NextResponse.json(await refreshMockAnalysis(), { status: 201 });
+  return NextResponse.json(await refreshAnalysis(), { status: 201 });
 }

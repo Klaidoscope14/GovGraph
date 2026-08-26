@@ -1,4 +1,5 @@
 import { refreshMockAnalysis } from "./analysis-service";
+import { productConfig } from "./product-config";
 import type { ComplianceSummary, GovGraphAnalysis } from "./types";
 
 export type ScanJobStatus = "queued" | "running" | "completed" | "failed";
@@ -43,8 +44,8 @@ const store =
   });
 
 export function enqueueMockScanJob(options: { repositoryId?: string; branch?: string } = {}): ScanJobSnapshot {
-  const repositoryId = options.repositoryId ?? "repo_legacy_claims";
-  const branch = options.branch ?? "main";
+  const repositoryId = options.repositoryId ?? productConfig.defaultRepository.id;
+  const branch = options.branch ?? productConfig.defaultRepository.branch;
   const concurrencyKey = `${repositoryId}:${branch}`;
   const activeJobId = store.activeJobByConcurrencyKey.get(concurrencyKey);
 

@@ -1,7 +1,7 @@
 import { ComplianceDashboard } from "@/components/ComplianceDashboard";
-import { getLatestMockAnalysis } from "@/lib/govgraph/analysis-service";
+import { getLatestAnalysis } from "@/lib/govgraph/data-provider";
 
 export default async function Home() {
-  const analysis = await getLatestMockAnalysis();
+  const analysis = await getLatestAnalysis();
   return <ComplianceDashboard initialAnalysis={analysis} />;
 }

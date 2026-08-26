@@ -10,7 +10,8 @@ client can replace the mock later without rewriting the product logic.
 
 ## What Exists Today
 
-- A Next.js dashboard at `/`.
+- A multi-page Next.js product surface:
+  `/`, `/findings`, `/graph`, `/remediation`, `/reports`, and `/settings`.
 - API route handlers for scan results, findings, remediation previews, and CSV export.
 - A short-lived cached scan read path so API bursts do not recompute analysis.
 - An opt-in async scan job path for polling-oriented clients.
@@ -24,9 +25,26 @@ client can replace the mock later without rewriting the product logic.
 - A remediation preview generator.
 - A Prisma schema for the planned Postgres persistence layer.
 
+## Removing Hardcoded Data
+
+The UI should not import fixture data directly. Product identity and the default
+demo repository live in `src/lib/govgraph/product-config.ts`. Page and route
+code reads analysis through `src/lib/govgraph/data-provider.ts`.
+
+Current provider mode is controlled by:
+
+```bash
+GOVGRAPH_DATA_SOURCE="mock"
+```
+
+When the real LatentGraph integration is ready, add a new provider in
+`data-provider.ts` and keep the pages unchanged.
+
 ## Useful Files
 
 - `src/data/mock-latentgraph.ts`: demo input data.
+- `src/lib/govgraph/product-config.ts`: product identity and default demo repo.
+- `src/lib/govgraph/data-provider.ts`: provider boundary for mock and future real data.
 - `src/lib/govgraph/analysis-service.ts`: runs the full mock analysis pipeline.
 - `src/lib/govgraph/scan-jobs.ts`: in-process async scan job manager.
 - `src/lib/govgraph/finding-query.ts`: filtering and pagination for findings.
@@ -34,8 +52,12 @@ client can replace the mock later without rewriting the product logic.
 - `src/lib/govgraph/risk-scoring.ts`: assigns risk scores.
 - `src/lib/govgraph/policies.ts`: starter compliance rules and evaluator.
 - `src/lib/govgraph/remediation.ts`: builds suggested fix cards.
-- `src/components/ComplianceDashboard.tsx`: main dashboard UI.
+- `src/components/ComplianceDashboard.tsx`: executive overview page composition.
+- `src/components/AppShell.tsx`: shared header and navigation.
+- `src/components/analysis/*`: reusable panels for graph, findings, metrics,
+  charts, and remediation.
 - `src/app/api/*/route.ts`: backend API endpoints.
+- `src/app/*/page.tsx`: route-specific product pages.
 - `src/lib/latentgraph/client.ts`: placeholder boundary for real MCP integration.
 - `src/lib/concurrency/batch.ts`: bounded parallel mapping and single-flight helpers.
 - `src/lib/cache/ttl-cache.ts`: small TTL cache used at integration boundaries.
