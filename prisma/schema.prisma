@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Repository {
+  id          String   @id @default(cuid())
+  name        String
+  url         String?
+  localPath   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  scans       Scan[]
+}
+
+model Scan {
+  id            String          @id @default(cuid())
+  repositoryId  String
+  commitSha     String?
+  branch        String          @default("main")
+  status        ScanStatus      @default(COMPLETED)
+  graph         GraphSnapshot?
+  findings      Finding[]
+  auditEvents   AuditEvent[]
+  createdAt     DateTime        @default(now())
+  repository    Repository      @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+}
+
+model GraphSnapshot {
+  id        String   @id @default(cuid())
+  scanId    String   @unique
+  nodes     Json
+  edges     Json
+  flows     Json
+  createdAt DateTime @default(now())
+  scan      Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+}
+
+model Rule {
+  id          String    @id
+  regulation  String
+  description String
+  severity    Severity
+  condition   Json
+  enabled     Boolean   @default(true)
+  findings    Finding[]
+}
+
+model Finding {
+  id              String            @id @default(cuid())
+  scanId          String
+  ruleId          String
+  pathId          String
+  regulation      String
+  severity        Severity
+  score           Int
+  narrative       String
+  status          FindingStatus     @default(OPEN)
+  evidence        Json
+  remediation     RemediationPreview?
+  createdAt       DateTime          @default(now())
+  scan            Scan              @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  rule            Rule              @relation(fields: [ruleId], references: [id])
+}
+
+model RemediationPreview {
+  id          String            @id @default(cuid())
+  findingId   String            @unique
+  strategy    String
+  confidence  RemediationConfidence
+  patch        String
+  rationale    String
+  createdAt    DateTime          @default(now())
+  finding      Finding           @relation(fields: [findingId], references: [id], onDelete: Cascade)
+}
+
+model AuditEvent {
+  id        String   @id @default(cuid())
+  scanId    String
+  actor     String
+  action    String
+  payload   Json
+  createdAt DateTime @default(now())
+  scan      Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+}
+
+enum ScanStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum FindingStatus {
+  OPEN
+  ACCEPTED_RISK
+  FIXED
+  DISMISSED
+}
+
+enum RemediationConfidence {
+  HIGH
+  NEEDS_REVIEW
+}
