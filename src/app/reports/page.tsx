@@ -17,13 +17,14 @@ export default async function ReportsPage() {
         description="Package policy violations, affected fields, source-to-sink paths, and narratives for compliance review."
       />
       <div className="mx-auto grid max-w-[1480px] gap-5 px-5 py-5 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <section className="rounded-lg border border-line bg-white shadow-panel">
+        <section className="glass-card">
           <div className="flex items-center gap-2 border-b border-line px-4 py-3">
-            <FileText className="h-4 w-4 text-[#486474]" />
+            <FileText className="h-4 w-4 text-accent" />
             <h2 className="text-sm font-semibold">Evidence Exports</h2>
           </div>
           <div className="grid gap-3 p-4 md:grid-cols-2">
             <ReportLink href="/api/report" label="All findings CSV" count={analysis.findings.length} />
+            <ReportLink href="/api/report?format=json" label="All findings JSON" count={analysis.findings.length} />
             {severities.map((severity) => (
               <ReportLink
                 count={analysis.findings.filter((finding) => finding.severity === severity).length}
@@ -35,7 +36,7 @@ export default async function ReportsPage() {
             ))}
           </div>
         </section>
-        <aside className="rounded-lg border border-line bg-white shadow-panel">
+        <aside className="glass-card">
           <div className="border-b border-line px-4 py-3">
             <h2 className="text-sm font-semibold">Audit Snapshot</h2>
           </div>
@@ -64,11 +65,11 @@ function ReportLink({
   tone?: Severity;
 }) {
   return (
-    <a className="rounded-lg border border-line p-4 hover:bg-[#f8fafb]" href={href}>
+    <a className="rounded-lg border border-line bg-surface p-4 transition-colors hover:bg-elevated" href={href}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold">{label}</h3>
-          <p className="mt-1 text-xs text-[#5f6d79]">{count} rows</p>
+          <p className="mt-1 text-xs text-text-secondary">{count} rows</p>
         </div>
         <Download className="h-4 w-4" style={{ color: severityColors[tone] }} />
       </div>
@@ -79,9 +80,8 @@ function ReportLink({
 function SnapshotRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-4">
-      <span className="text-[#5f6d79]">{label}</span>
+      <span className="text-text-secondary">{label}</span>
       <span className="max-w-[220px] truncate font-medium">{value}</span>
     </div>
   );
 }
-

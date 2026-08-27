@@ -30,25 +30,32 @@ export function ComplianceDashboard({
     <main>
       <FeatureHeader
         analysis={analysis}
-        eyebrow="Executive Overview"
-        title="Governance posture across sensitive code paths"
-        description="A focused command center for risk, policy violations, data-flow evidence, and confidence-gated remediation."
+        eyebrow="Governance Dashboard"
+        title="Compliance posture across sensitive code paths"
+        description="Risk scoring, policy violations, data-flow evidence, and confidence-gated remediation — all in one view."
         action={
           <>
             <a
-              className="inline-flex h-10 items-center gap-2 rounded-md border border-line bg-white px-3 text-sm font-medium hover:bg-[#f0f3f6]"
+              className="inline-flex h-10 items-center gap-2 rounded-md border border-line bg-surface px-3 text-sm font-medium text-text-secondary transition-colors hover:bg-elevated hover:text-ink"
               href="/api/report"
             >
               <Download className="h-4 w-4" />
               CSV
             </a>
+            <a
+              className="inline-flex h-10 items-center gap-2 rounded-md border border-line bg-surface px-3 text-sm font-medium text-text-secondary transition-colors hover:bg-elevated hover:text-ink"
+              href="/api/report?format=json"
+            >
+              <Download className="h-4 w-4" />
+              JSON
+            </a>
             <button
-              className="inline-flex h-10 items-center gap-2 rounded-md bg-ink px-3 text-sm font-medium text-white hover:bg-[#263544] disabled:opacity-65"
+              className="inline-flex h-10 items-center gap-2 rounded-md bg-accent px-3 text-sm font-medium text-white transition-colors hover:bg-accent-glow disabled:opacity-50"
               disabled={isScanning}
               onClick={runScan}
             >
               <Play className="h-4 w-4" />
-              {isScanning ? "Scanning" : "Run scan"}
+              {isScanning ? "Scanning..." : "Re-scan"}
             </button>
           </>
         }
@@ -58,16 +65,15 @@ export function ComplianceDashboard({
         <MetricsGrid analysis={analysis} />
 
         <section className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.55fr)]">
-          <DataFlowGraphPanel analysis={analysis} />
+          <DataFlowGraphPanel analysis={analysis} heightClassName="h-[520px]" />
           <PolicyDistributionPanel analysis={analysis} />
         </section>
 
         <section className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
-          <FindingsWorkspace analysis={analysis} compact />
+          <FindingsWorkspace analysis={analysis} />
           <RemediationWorkspace analysis={analysis} />
         </section>
       </div>
     </main>
   );
 }
-

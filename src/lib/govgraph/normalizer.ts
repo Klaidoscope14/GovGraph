@@ -1,4 +1,3 @@
-import { mockLatentGraphFixture } from "@/data/mock-latentgraph";
 import { classifyFieldName, extractSensitiveFields } from "./sensitive-classifier";
 import type {
   DataFlowPath,
@@ -19,7 +18,7 @@ export interface NormalizedGraph {
 }
 
 export function normalizeLatentGraphFixture(
-  fixture: LatentGraphFixture = mockLatentGraphFixture
+  fixture: LatentGraphFixture
 ): NormalizedGraph {
   const nodes = new Map<string, GovGraphNode>();
   const edges: GovGraphEdge[] = [];
@@ -43,13 +42,14 @@ export function normalizeLatentGraphFixture(
   }
 
   for (const dep of fixture.dependencies) {
-    for (const outgoing of dep.outgoing) {
-      const sourceFile = fixture.files.find((file) => file.path === dep.path);
+    const depPath = dep.path ?? "unknown";
+    for (const outgoing of dep.outgoing ?? []) {
+      const sourceFile = fixture.files.find((file) => file.path === depPath);
       const targetFile = fixture.files.find((file) => file.path === outgoing.target);
-      const sourceNodeId = preferredNodeId(sourceFile, dep.path);
+      const sourceNodeId = preferredNodeId(sourceFile, depPath);
       const targetNodeId = preferredNodeId(targetFile, outgoing.target, outgoing.data_flow);
 
-      if (!nodes.has(sourceNodeId)) nodes.set(sourceNodeId, fileFallbackNode(dep.path));
+      if (!nodes.has(sourceNodeId)) nodes.set(sourceNodeId, fileFallbackNode(depPath));
       if (!nodes.has(targetNodeId)) nodes.set(targetNodeId, fileFallbackNode(outgoing.target));
 
       const text = [outgoing.summary, outgoing.data_flow, targetFile?.summary].filter(Boolean).join(" ");
@@ -57,7 +57,7 @@ export function normalizeLatentGraphFixture(
       const flowFields = sensitiveFields.length > 0 ? sensitiveFields : [{ name: "payload", fieldClass: "UNKNOWN" as FieldClass }];
 
       for (const [index, field] of flowFields.entries()) {
-        const id = edgeId(dep.path, outgoing.target, field.name, edges.length);
+        const id = edgeId(depPath, outgoing.target, field.name, edges.length);
         const targetNode = nodes.get(targetNodeId);
         edges.push({
           id,
@@ -68,7 +68,7 @@ export function normalizeLatentGraphFixture(
           encrypted: inferEncryptionState(text, targetNode?.type),
           crossesTrustBoundary: crossesTrustBoundary(text, targetNode?.type),
           hopIndex: index,
-          pathId: pathId(dep.path, outgoing.target, field.name),
+          pathId: pathId(depPath, outgoing.target, field.name),
           evidence: outgoing.data_flow || outgoing.summary || "LatentGraph dependency edge"
         });
       }
@@ -84,7 +84,7 @@ export function normalizeLatentGraphFixture(
 
 function fileToNodes(file: LatentGraphFileSummary): GovGraphNode[] {
   const nodes: GovGraphNode[] = [];
-  const symbol = file.key_symbols[0];
+  const symbol = file.key_symbols?.[0];
   const primaryName = symbol?.name ?? file.path;
 
   nodes.push({
@@ -139,7 +139,7 @@ function preferredNodeId(
   if (storage && /s3|bucket/i.test(storage.type + storage.hint) && /write|sink|external|s3/i.test(dataFlow ?? "")) {
     return `storage:${storage.type}:${storage.hint}`;
   }
-  const symbol = file.key_symbols[0];
+  const symbol = file.key_symbols?.[0];
   return `symbol:${symbol?.fqn ?? file.path}`;
 }
 
@@ -156,7 +156,7 @@ function fileFallbackNode(filePath: string): GovGraphNode {
 }
 
 function inferNodeType(file: LatentGraphFileSummary): NodeType {
-  const category = `${file.file_category ?? ""} ${file.summary}`.toLowerCase();
+  const category = `${file.file_category ?? ""} ${file.summary ?? ""}`.toLowerCase();
   if (category.includes("api")) return "api_endpoint";
   if (category.includes("logger") || category.includes("logging") || category.includes("telemetry")) return "log_sink";
   if (category.includes("external") || category.includes("integration")) return "external_sink";

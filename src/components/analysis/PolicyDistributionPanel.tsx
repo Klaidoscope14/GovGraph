@@ -18,18 +18,21 @@ export function PolicyDistributionPanel({ analysis }: { analysis: GovGraphAnalys
   const chartData = buildChartData(analysis);
 
   return (
-    <div className="rounded-lg border border-line bg-white shadow-panel">
+    <div className="glass-card">
       <div className="flex items-center gap-2 border-b border-line px-4 py-3">
-        <ShieldAlert className="h-4 w-4 text-[#b73144]" />
+        <ShieldAlert className="h-4 w-4 text-risk-critical" />
         <h2 className="text-sm font-semibold">Policy Distribution</h2>
       </div>
       <div className="h-[250px] px-2 pt-4">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} margin={{ left: 0, right: 12, top: 8, bottom: 8 }}>
-            <CartesianGrid stroke="#edf0f2" vertical={false} />
-            <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={12} />
-            <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={12} />
-            <Tooltip cursor={{ fill: "#f5f7f9" }} />
+            <CartesianGrid stroke="#2a3040" vertical={false} />
+            <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={12} tick={{ fill: "#8a93a0" }} />
+            <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={12} tick={{ fill: "#8a93a0" }} />
+            <Tooltip
+              cursor={{ fill: "#1c2230" }}
+              contentStyle={{ background: "#141820", border: "1px solid #2a3040", borderRadius: 6, color: "#f0ece4" }}
+            />
             <Bar dataKey="count" radius={[4, 4, 0, 0]}>
               {chartData.map((entry) => (
                 <Cell key={entry.label} fill={entry.color} />
@@ -44,12 +47,12 @@ export function PolicyDistributionPanel({ analysis }: { analysis: GovGraphAnalys
           {analysis.scoredFlows.slice(0, 5).map((flow) => (
             <div key={flow.pathId}>
               <div className="mb-1 flex items-center justify-between text-xs">
-                <span className="max-w-[230px] truncate text-[#5f6d79]">{flow.pathId}</span>
-                <span className="font-semibold">{flow.score}</span>
+                <span className="max-w-[230px] truncate text-text-secondary">{flow.pathId}</span>
+                <span className="font-metric font-semibold">{flow.score}</span>
               </div>
-              <div className="h-2 rounded-full bg-[#edf0f2]">
+              <div className="h-2 rounded-full bg-line">
                 <div
-                  className="h-2 rounded-full"
+                  className="h-2 rounded-full transition-all"
                   style={{
                     width: `${flow.score}%`,
                     backgroundColor:
@@ -57,7 +60,8 @@ export function PolicyDistributionPanel({ analysis }: { analysis: GovGraphAnalys
                         ? severityColors.critical
                         : flow.score >= 70
                           ? severityColors.high
-                          : severityColors.medium
+                          : severityColors.medium,
+                    boxShadow: flow.score >= 80 ? `0 0 8px ${severityColors.critical}40` : undefined
                   }}
                 />
               </div>
@@ -83,4 +87,3 @@ function buildChartData(analysis: GovGraphAnalysis) {
     color: severityColors[severity]
   }));
 }
-

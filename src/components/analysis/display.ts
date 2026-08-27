@@ -8,19 +8,18 @@ export const severityRank: Record<Severity, number> = {
 };
 
 export const severityColors: Record<Severity, string> = {
-  critical: "#b73144",
-  high: "#d85b41",
-  medium: "#d59d23",
-  low: "#2f9e6d"
+  critical: "#e84057",
+  high: "#e8772e",
+  medium: "#e8b83a",
+  low: "#3abf7a"
 };
 
 export const nodeColors: Record<string, string> = {
-  function: "#ffffff",
-  module: "#eef5f3",
-  db_table: "#f5f0e6",
-  api_endpoint: "#eaf0f7",
-  external_sink: "#fff0ea",
-  event_bus_topic: "#f0edf7",
-  log_sink: "#fff2f4"
+  function: "#1c2230",
+  module: "#1a2218",
+  db_table: "#221e14",
+  api_endpoint: "#161c26",
+  external_sink: "#261a14",
+  event_bus_topic: "#1c1826",
+  log_sink: "#261418"
 };
-

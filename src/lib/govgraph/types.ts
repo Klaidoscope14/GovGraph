@@ -146,15 +146,32 @@ export interface GovGraphAnalysis {
 
 export interface LatentGraphFileSummary {
   path: string;
-  summary: string;
-  module_name: string;
+  summary?: string;
+  module_name?: string;
   file_category?: string;
+  execution_context?: string;
   modification_impact?: string;
-  key_symbols: Array<{
+  key_symbols?: Array<{
     name: string;
     kind: string;
     signature?: string;
-    fqn: string;
+    fqn?: string;
+    is_async?: boolean;
+    decorators?: string[];
+    visibility?: string;
+    docstring?: string;
+  }>;
+  exports?: Array<{
+    name: string;
+    kind?: string;
+    summary?: string;
+    key_methods?: string[];
+  }>;
+  internal_imports?: Array<{
+    name: string;
+    from_path?: string;
+    kind?: string;
+    is_relative?: boolean;
   }>;
   api_endpoints?: Array<{
     method: string;
@@ -170,24 +187,27 @@ export interface LatentGraphFileSummary {
     name: string;
     value_preview?: string;
   }>;
+  degraded?: boolean;
 }
 
 export interface LatentGraphDependencySummary {
-  path: string;
-  outgoing: Array<{
+  path?: string;
+  outgoing?: Array<{
     target: string;
     implicit?: boolean;
     imports?: string[];
     summary?: string;
     data_flow?: string;
   }>;
-  incoming: Array<{
+  incoming?: Array<{
     source: string;
     implicit?: boolean;
     imports?: string[];
     summary?: string;
     data_flow?: string;
   }>;
+  learnings?: string[];
+  degraded?: boolean;
 }
 
 export interface LatentGraphFixture {

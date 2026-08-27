@@ -5,9 +5,9 @@ export function RemediationWorkspace({ analysis }: { analysis: GovGraphAnalysis 
   const findingById = new Map(analysis.findings.map((finding) => [finding.id, finding]));
 
   return (
-    <div className="rounded-lg border border-line bg-white shadow-panel">
+    <div className="glass-card">
       <div className="flex items-center gap-2 border-b border-line px-4 py-3">
-        <CheckCircle2 className="h-4 w-4 text-[#25795f]" />
+        <CheckCircle2 className="h-4 w-4 text-risk-low" />
         <h2 className="text-sm font-semibold">Remediation Preview</h2>
       </div>
       <div className="divide-y divide-line">
@@ -19,22 +19,44 @@ export function RemediationWorkspace({ analysis }: { analysis: GovGraphAnalysis 
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h3 className="text-sm font-semibold">{remediation.strategy}</h3>
-                  <p className="mt-1 text-xs text-[#5f6d79]">{finding?.regulation}</p>
+                  <p className="mt-1 text-xs text-text-secondary">{finding?.regulation}</p>
                 </div>
                 <span
-                  className="shrink-0 rounded-md px-2 py-1 text-xs font-semibold"
-                  style={{
-                    backgroundColor: remediation.confidence === "high" ? "#e6f4ee" : "#fff4db",
-                    color: remediation.confidence === "high" ? "#25795f" : "#896515"
-                  }}
+                  className={`shrink-0 rounded-md px-2 py-1 text-xs font-semibold ${
+                    remediation.confidence === "high"
+                      ? "bg-risk-low/15 text-risk-low"
+                      : "bg-risk-medium/15 text-risk-medium"
+                  }`}
+                  style={remediation.confidence === "high" ? { boxShadow: `0 0 8px ${severityGreen}30` } : undefined}
                 >
                   {remediation.confidence === "high" ? "PR ready" : "Review"}
                 </span>
               </div>
-              <pre className="mt-3 max-h-44 overflow-auto rounded-md border border-line bg-[#111820] p-3 text-xs leading-5 text-[#dfe7ed]">
-                {remediation.patch}
+              <pre className="mt-3 max-h-44 overflow-auto rounded-md border border-line bg-[#0c0e12] p-3 font-mono text-xs leading-5">
+                {remediation.patch.split("\n").map((line, i) => (
+                  <div
+                    key={i}
+                    className={
+                      line.startsWith("+")
+                        ? "text-risk-low"
+                        : line.startsWith("-")
+                          ? "text-risk-critical"
+                          : "text-text-secondary"
+                    }
+                  >
+                    {line}
+                  </div>
+                ))}
               </pre>
-              <p className="mt-3 text-sm leading-6 text-[#3f4d59]">{remediation.rationale}</p>
+              <p className="mt-3 text-sm leading-6 text-text-secondary">{remediation.rationale}</p>
+              <div className="mt-3 flex gap-2">
+                <button className="rounded-md bg-accent px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-accent-glow">
+                  Approve &amp; Open PR
+                </button>
+                <button className="rounded-md border border-line px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:bg-elevated hover:text-ink">
+                  Dismiss
+                </button>
+              </div>
             </article>
           );
         })}
@@ -43,3 +65,4 @@ export function RemediationWorkspace({ analysis }: { analysis: GovGraphAnalysis 
   );
 }
 
+const severityGreen = "#3abf7a";

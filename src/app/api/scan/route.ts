@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getLatestAnalysis, refreshAnalysis } from "@/lib/govgraph/data-provider";
+import { getLatestAnalysis, refreshAnalysis, scanWithCredentials } from "@/lib/govgraph/data-provider";
 import { enqueueMockScanJob, getLatestScanJob } from "@/lib/govgraph/scan-jobs";
 
 export async function GET() {
@@ -19,6 +19,27 @@ export async function POST(request: NextRequest) {
       },
       { status: 202 }
     );
+  }
+
+  let body: Record<string, unknown> = {};
+  try {
+    body = await request.json().catch(() => ({}));
+  } catch {
+    // No body — proceed with default scan
+  }
+
+  const projectId = typeof body.projectId === "string" ? body.projectId.trim() : undefined;
+  const apiKey = typeof body.apiKey === "string" ? body.apiKey.trim() : undefined;
+  const branch = typeof body.branch === "string" ? body.branch.trim() : undefined;
+
+  if (projectId && apiKey) {
+    try {
+      const analysis = await scanWithCredentials({ projectId, apiKey, branch });
+      return NextResponse.json(analysis, { status: 201 });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Scan failed";
+      return NextResponse.json({ error: message }, { status: 500 });
+    }
   }
 
   return NextResponse.json(await refreshAnalysis(), { status: 201 });
