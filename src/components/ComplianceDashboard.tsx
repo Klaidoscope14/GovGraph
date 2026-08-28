@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Download, Play } from "lucide-react";
-import { DataFlowGraphPanel } from "./analysis/DataFlowGraphPanel";
+import { DataFlowSummaryCard } from "./analysis/DataFlowSummaryCard";
 import { FeatureHeader } from "./analysis/FeatureHeader";
 import { FindingsWorkspace } from "./analysis/FindingsWorkspace";
 import { MetricsGrid } from "./analysis/MetricsGrid";
@@ -20,9 +20,15 @@ export function ComplianceDashboard({
 
   async function runScan() {
     setIsScanning(true);
-    const response = await fetch("/api/scan", { method: "POST" });
-    const nextAnalysis = (await response.json()) as GovGraphAnalysis;
-    setAnalysis(nextAnalysis);
+    try {
+      const response = await fetch("/api/scan", { method: "POST" });
+      const data = await response.json();
+      if (response.ok && data.nodes) {
+        setAnalysis(data as GovGraphAnalysis);
+      }
+    } catch {
+      // Keep existing analysis on failure
+    }
     setIsScanning(false);
   }
 
@@ -64,8 +70,8 @@ export function ComplianceDashboard({
       <div className="mx-auto max-w-[1480px] px-5 py-5">
         <MetricsGrid analysis={analysis} />
 
-        <section className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.55fr)]">
-          <DataFlowGraphPanel analysis={analysis} heightClassName="h-[520px]" />
+        <section className="mt-5 grid gap-5 xl:grid-cols-2">
+          <DataFlowSummaryCard analysis={analysis} />
           <PolicyDistributionPanel analysis={analysis} />
         </section>
 

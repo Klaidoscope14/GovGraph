@@ -30,14 +30,26 @@ const FINANCIAL_PATTERNS = [
   /salary/i
 ];
 
-export function classifyFieldName(value: string): FieldClass {
+export function classifyFieldName(value: string, semanticHints?: Map<string, FieldClass>): FieldClass {
+  const hinted = semanticHints?.get(value.toLowerCase());
+  if (hinted) return hinted;
   if (PII_PATTERNS.some((pattern) => pattern.test(value))) return "PII";
   if (SECRET_PATTERNS.some((pattern) => pattern.test(value))) return "SECRET";
   if (FINANCIAL_PATTERNS.some((pattern) => pattern.test(value))) return "FINANCIAL";
   return "UNKNOWN";
 }
 
-export function extractSensitiveFields(text: string): Array<{ name: string; fieldClass: FieldClass }> {
+/**
+ * @param semanticHints Optional codebase-specific field classifications
+ * (lowercase name -> class), typically discovered via `ask_codebase`. Checked
+ * before the generic regex patterns so domain-specific fields (e.g.
+ * `order_id` in a trading engine) are classified correctly even when they
+ * don't match the built-in PII/SECRET/FINANCIAL keyword lists.
+ */
+export function extractSensitiveFields(
+  text: string,
+  semanticHints?: Map<string, FieldClass>
+): Array<{ name: string; fieldClass: FieldClass }> {
   const tokens = text
     .split(/[^A-Za-z0-9_]+/)
     .map((token) => token.trim())
@@ -45,7 +57,7 @@ export function extractSensitiveFields(text: string): Array<{ name: string; fiel
 
   const seen = new Map<string, FieldClass>();
   for (const token of tokens) {
-    const fieldClass = classifyFieldName(token);
+    const fieldClass = classifyFieldName(token, semanticHints);
     if (fieldClass !== "UNKNOWN") {
       seen.set(token, fieldClass);
     }

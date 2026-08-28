@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getLatestAnalysis, refreshAnalysis, scanWithCredentials } from "@/lib/govgraph/data-provider";
+import { getLatestAnalysis, refreshAnalysis, scanWithCredentials, getLastCredentials } from "@/lib/govgraph/data-provider";
 import { enqueueMockScanJob, getLatestScanJob } from "@/lib/govgraph/scan-jobs";
 
 export async function GET() {
@@ -25,13 +25,14 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json().catch(() => ({}));
   } catch {
-    // No body — proceed with default scan
+    // No body — proceed with re-scan
   }
 
   const projectId = typeof body.projectId === "string" ? body.projectId.trim() : undefined;
   const apiKey = typeof body.apiKey === "string" ? body.apiKey.trim() : undefined;
   const branch = typeof body.branch === "string" ? body.branch.trim() : undefined;
 
+  // Fresh scan with explicit credentials from landing page
   if (projectId && apiKey) {
     try {
       const analysis = await scanWithCredentials({ projectId, apiKey, branch });
@@ -42,5 +43,12 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  return NextResponse.json(await refreshAnalysis(), { status: 201 });
+  // Re-scan: use stored credentials or env fallback
+  try {
+    const analysis = await refreshAnalysis();
+    return NextResponse.json(analysis, { status: 201 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Re-scan failed";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

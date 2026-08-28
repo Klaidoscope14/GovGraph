@@ -29,6 +29,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Link>
             <Link
               className="text-sm text-text-secondary transition-colors hover:text-ink"
+              href={"/dashboard/data-flow" as Route}
+            >
+              Data Flow
+            </Link>
+            <Link
+              className="text-sm text-text-secondary transition-colors hover:text-ink"
               href={"/reports" as Route}
             >
               Reports

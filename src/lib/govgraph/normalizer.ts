@@ -18,7 +18,8 @@ export interface NormalizedGraph {
 }
 
 export function normalizeLatentGraphFixture(
-  fixture: LatentGraphFixture
+  fixture: LatentGraphFixture,
+  semanticHints?: Map<string, FieldClass>
 ): NormalizedGraph {
   const nodes = new Map<string, GovGraphNode>();
   const edges: GovGraphEdge[] = [];
@@ -53,7 +54,7 @@ export function normalizeLatentGraphFixture(
       if (!nodes.has(targetNodeId)) nodes.set(targetNodeId, fileFallbackNode(outgoing.target));
 
       const text = [outgoing.summary, outgoing.data_flow, targetFile?.summary].filter(Boolean).join(" ");
-      const sensitiveFields = extractSensitiveFields(text);
+      const sensitiveFields = extractSensitiveFields(text, semanticHints);
       const flowFields = sensitiveFields.length > 0 ? sensitiveFields : [{ name: "payload", fieldClass: "UNKNOWN" as FieldClass }];
 
       for (const [index, field] of flowFields.entries()) {

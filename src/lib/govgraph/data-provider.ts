@@ -3,12 +3,12 @@ import {
   refreshMockAnalysis,
   runMockAnalysis
 } from "./analysis-service";
-import { getDataSourceConfig } from "./product-config";
 import type { GovGraphAnalysis, LatentGraphFixture } from "./types";
 import { normalizeLatentGraphFixture } from "./normalizer";
 import { scoreFlows } from "./risk-scoring";
 import { evaluatePolicies, starterRules } from "./policies";
 import { buildRemediationPreviews } from "./remediation";
+import { discoverSemanticFields } from "./semantic-fields";
 import type { ComplianceSummary, Severity } from "./types";
 
 type RawOverview = Record<string, unknown>;
@@ -16,6 +16,12 @@ type RawOverview = Record<string, unknown>;
 interface NormalizedOverview {
   architecture_summary: string;
   top_level_modules: Array<{ path: string; summary?: string; file_count?: number }>;
+}
+
+interface ScanCredentials {
+  projectId: string;
+  apiKey: string;
+  branch: string;
 }
 
 function normalizeOverview(raw: unknown): NormalizedOverview {
@@ -41,7 +47,6 @@ function normalizeOverview(raw: unknown): NormalizedOverview {
       }))
       .filter((m) => m.path !== "");
   } else if (rawModules && typeof rawModules === "object" && !Array.isArray(rawModules)) {
-    // Single module object instead of array
     const m = rawModules as Record<string, unknown>;
     if (m.path || m.name) {
       modules = [{
@@ -52,7 +57,6 @@ function normalizeOverview(raw: unknown): NormalizedOverview {
     }
   }
 
-  // If still empty, try to extract any useful structure
   if (modules.length === 0) {
     console.warn("[GovGraph] No top_level_modules found in overview. Raw keys:", Object.keys(obj));
     modules = [{ path: "root", summary: architectureSummary.slice(0, 100) }];
@@ -61,21 +65,29 @@ function normalizeOverview(raw: unknown): NormalizedOverview {
   return { architecture_summary: architectureSummary, top_level_modules: modules };
 }
 
-export interface AnalysisDataProvider {
-  mode: string;
-  label: string;
-  getLatestAnalysis(): Promise<GovGraphAnalysis>;
-  refreshAnalysis(): Promise<GovGraphAnalysis>;
+// --- Persistent state (survives across requests in the same server process) ---
+
+declare global {
+  var __govgraphLastAnalysis: GovGraphAnalysis | null | undefined;
+  var __govgraphLastCredentials: ScanCredentials | null | undefined;
 }
 
-const mockProvider: AnalysisDataProvider = {
-  mode: "mock",
-  label: "Mock fixture",
-  getLatestAnalysis: getLatestMockAnalysis,
-  refreshAnalysis: refreshMockAnalysis
-};
+function getLastAnalysis(): GovGraphAnalysis | null {
+  return globalThis.__govgraphLastAnalysis ?? null;
+}
 
-let lastAnalysis: GovGraphAnalysis | null = null;
+function setLastAnalysis(analysis: GovGraphAnalysis, credentials?: ScanCredentials) {
+  globalThis.__govgraphLastAnalysis = analysis;
+  if (credentials) {
+    globalThis.__govgraphLastCredentials = credentials;
+  }
+}
+
+export function getLastCredentials(): ScanCredentials | null {
+  return globalThis.__govgraphLastCredentials ?? null;
+}
+
+// --- Core analysis runner ---
 
 async function runLatentGraphAnalysis(options: {
   projectId: string;
@@ -107,7 +119,6 @@ async function runLatentGraphAnalysis(options: {
     .map((m) => m.path)
     .filter((p) => p !== "root");
 
-  // When top_level_modules is missing/empty, discover file paths via ask_codebase
   if (allFilePaths.length === 0) {
     console.log("[GovGraph] No real module paths — discovering files via ask_codebase");
     try {
@@ -125,24 +136,25 @@ async function runLatentGraphAnalysis(options: {
   }
 
   if (allFilePaths.length === 0) {
-    console.warn("[GovGraph] No file paths discovered, using mock data");
-    const { getLatestMockAnalysis } = await import("./analysis-service");
-    return getLatestMockAnalysis();
+    throw new Error("No source files discovered for this project. The project may not be fully indexed.");
   }
 
-  const files = (await Promise.allSettled(
-    allFilePaths.map((fp) => client.getFile(fp))
-  )).filter((r): r is PromiseFulfilledResult<typeof r extends PromiseFulfilledResult<infer T> ? T : never> => r.status === "fulfilled")
+  const [filesResults, depsResults, semanticHints] = await Promise.all([
+    Promise.allSettled(allFilePaths.map((fp) => client.getFile(fp))),
+    Promise.allSettled(allFilePaths.map((fp) => client.getDependencies(fp))),
+    discoverSemanticFields(client)
+  ]);
+
+  const files = filesResults
+    .filter((r): r is PromiseFulfilledResult<typeof r extends PromiseFulfilledResult<infer T> ? T : never> => r.status === "fulfilled")
     .map((r) => r.value);
   console.log(`[GovGraph] Got ${files.length}/${allFilePaths.length} files`);
 
-  const dependencies = (await Promise.allSettled(
-    allFilePaths.map((fp) => client.getDependencies(fp))
-  )).filter((r): r is PromiseFulfilledResult<typeof r extends PromiseFulfilledResult<infer T> ? T : never> => r.status === "fulfilled")
+  const dependencies = depsResults
+    .filter((r): r is PromiseFulfilledResult<typeof r extends PromiseFulfilledResult<infer T> ? T : never> => r.status === "fulfilled")
     .map((r) => r.value);
   console.log(`[GovGraph] Got ${dependencies.length}/${allFilePaths.length} dependency sets`);
 
-  // Build module list from actual discovered files if top_level_modules was missing
   const moduleEntries = overview.top_level_modules[0]?.path === "root"
     ? allFilePaths.map((fp) => ({ path: fp, summary: "", file_count: 0 }))
     : overview.top_level_modules.map((m) => ({
@@ -160,23 +172,23 @@ async function runLatentGraphAnalysis(options: {
     dependencies,
   };
 
-  const graph = normalizeLatentGraphFixture(fixture);
+  const graph = normalizeLatentGraphFixture(fixture, semanticHints);
   const scoredFlows = scoreFlows(graph.flows, graph.edges, graph.nodes);
   const findings = evaluatePolicies(graph.flows, scoredFlows, graph.nodes, graph.edges, starterRules)
     .sort((a, b) => b.score - a.score);
   const remediations = buildRemediationPreviews(findings);
 
-  // Extract project name from overview text or first module path
   const titleMatch = overview.architecture_summary.match(/\*\*([^*]+)\*\*/);
   const repoName = titleMatch?.[1]
     ?? (allFilePaths.length > 0 ? allFilePaths[0].split("/")[0] : "Repository");
 
+  const branch = options.branch ?? "main";
   const analysis: GovGraphAnalysis = {
     repository: {
       id: options.projectId,
       name: repoName,
-      branch: options.branch ?? "main",
-      commitSha: "live",
+      branch,
+      commitSha: `scan-${Date.now().toString(36)}`,
       scannedAt: new Date().toISOString()
     },
     nodes: graph.nodes,
@@ -189,37 +201,11 @@ async function runLatentGraphAnalysis(options: {
     summary: buildSummary(findings, scoredFlows.length)
   };
 
-  lastAnalysis = analysis;
+  setLastAnalysis(analysis, { projectId: options.projectId, apiKey: options.apiKey, branch });
   return analysis;
 }
 
-function createLatentGraphProvider(): AnalysisDataProvider {
-  return {
-    mode: "latentgraph",
-    label: "LatentGraph MCP",
-    getLatestAnalysis: async () => {
-      if (lastAnalysis) return lastAnalysis;
-      return runLatentGraphAnalysis({
-        projectId: process.env.LGRAPH_PROJECT_ID ?? "",
-        apiKey: process.env.LGRAPH_API_KEY ?? "",
-        branch: process.env.LGRAPH_BRANCH ?? "main"
-      }).catch((error) => {
-        console.warn("[GovGraph] LatentGraph MCP failed, falling back to mock:", error instanceof Error ? error.message : error);
-        return getLatestMockAnalysis();
-      });
-    },
-    refreshAnalysis: async () => {
-      return runLatentGraphAnalysis({
-        projectId: process.env.LGRAPH_PROJECT_ID ?? "",
-        apiKey: process.env.LGRAPH_API_KEY ?? "",
-        branch: process.env.LGRAPH_BRANCH ?? "main"
-      }).catch((error) => {
-        console.warn("[GovGraph] LatentGraph MCP failed, falling back to mock:", error instanceof Error ? error.message : error);
-        return refreshMockAnalysis();
-      });
-    }
-  };
-}
+// --- Public API ---
 
 export async function scanWithCredentials(options: {
   projectId: string;
@@ -227,6 +213,47 @@ export async function scanWithCredentials(options: {
   branch?: string;
 }): Promise<GovGraphAnalysis> {
   return runLatentGraphAnalysis(options);
+}
+
+export async function getLatestAnalysis(): Promise<GovGraphAnalysis> {
+  const cached = getLastAnalysis();
+  if (cached) return cached;
+
+  // Try MCP with stored or env credentials
+  const creds = getLastCredentials();
+  const projectId = creds?.projectId ?? process.env.LGRAPH_PROJECT_ID ?? "";
+  const apiKey = creds?.apiKey ?? process.env.LGRAPH_API_KEY ?? "";
+  const branch = creds?.branch ?? process.env.LGRAPH_BRANCH ?? "main";
+
+  if (projectId && apiKey) {
+    try {
+      return await runLatentGraphAnalysis({ projectId, apiKey, branch });
+    } catch (err) {
+      console.warn("[GovGraph] MCP scan failed, falling back to mock:", err instanceof Error ? err.message : err);
+    }
+  }
+
+  return getLatestMockAnalysis();
+}
+
+export async function refreshAnalysis(): Promise<GovGraphAnalysis> {
+  // Clear cached analysis to force re-scan
+  globalThis.__govgraphLastAnalysis = null;
+
+  const creds = getLastCredentials();
+  const projectId = creds?.projectId ?? process.env.LGRAPH_PROJECT_ID ?? "";
+  const apiKey = creds?.apiKey ?? process.env.LGRAPH_API_KEY ?? "";
+  const branch = creds?.branch ?? process.env.LGRAPH_BRANCH ?? "main";
+
+  if (projectId && apiKey) {
+    try {
+      return await runLatentGraphAnalysis({ projectId, apiKey, branch });
+    } catch (err) {
+      console.warn("[GovGraph] MCP re-scan failed, falling back to mock:", err instanceof Error ? err.message : err);
+    }
+  }
+
+  return refreshMockAnalysis();
 }
 
 function buildSummary(findings: GovGraphAnalysis["findings"], regulatedFlows: number): ComplianceSummary {
@@ -246,29 +273,6 @@ function buildSummary(findings: GovGraphAnalysis["findings"], regulatedFlows: nu
     lowFindings: countBySeverity("low"),
     regulatedFlows
   };
-}
-
-const providers: Record<string, AnalysisDataProvider> = {
-  mock: mockProvider
-};
-
-export function getAnalysisProvider(): AnalysisDataProvider {
-  const mode = getDataSourceConfig().mode;
-  if (mode === "latentgraph") {
-    if (!providers.latentgraph) {
-      providers.latentgraph = createLatentGraphProvider();
-    }
-    return providers.latentgraph;
-  }
-  return providers[mode] ?? mockProvider;
-}
-
-export async function getLatestAnalysis() {
-  return getAnalysisProvider().getLatestAnalysis();
-}
-
-export async function refreshAnalysis() {
-  return getAnalysisProvider().refreshAnalysis();
 }
 
 export function runFixtureAnalysisForTests() {
