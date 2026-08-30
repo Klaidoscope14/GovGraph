@@ -15,7 +15,7 @@ export default function AboutPage() {
   return (
     <main>
       <div className="border-b border-line bg-surface">
-        <div className="mx-auto max-w-[1480px] px-5 py-10">
+        <div className="mx-auto max-w-[1480px] px-4 py-10 sm:px-5">
           <div className="flex items-center gap-4">
             <div className="grid h-14 w-14 place-items-center rounded-2xl border border-accent/30 bg-accent-subtle shadow-glow">
               <ShieldCheck className="h-7 w-7 text-accent" />
@@ -31,8 +31,8 @@ export default function AboutPage() {
         <div className="h-[2px] bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
       </div>
 
-      <div className="mx-auto max-w-[1480px] px-5 py-8">
-        <section className="glass-card p-6">
+      <div className="mx-auto max-w-[1480px] px-4 py-8 sm:px-5">
+        <section className="glass-card animate-fade-in p-6">
           <h2 className="font-heading text-xl font-semibold">What is GovGraph?</h2>
           <p className="mt-3 max-w-3xl leading-7 text-text-secondary">
             GovGraph is a continuous data governance and compliance platform built for legacy
@@ -140,8 +140,10 @@ function FeatureCard({
   description: string;
 }) {
   return (
-    <div className="glass-card p-5">
-      <div className="text-accent">{icon}</div>
+    <div className="glass-card p-5 transition-colors hover:border-accent/40">
+      <div className="grid h-9 w-9 place-items-center rounded-md border border-accent/25 bg-accent-subtle text-accent">
+        {icon}
+      </div>
       <h3 className="mt-3 text-sm font-semibold">{title}</h3>
       <p className="mt-2 text-xs leading-5 text-text-secondary">{description}</p>
     </div>
@@ -178,7 +180,7 @@ function Step({
 function TechRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start gap-3 rounded-md border border-line/50 bg-elevated/30 px-4 py-3">
-      <span className="shrink-0 text-xs font-semibold uppercase text-accent">{label}</span>
+      <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-accent">{label}</span>
       <span className="text-sm text-text-secondary">{value}</span>
     </div>
   );

@@ -32,7 +32,7 @@ export function RemediationWorkspace({ analysis }: { analysis: GovGraphAnalysis 
                   {remediation.confidence === "high" ? "PR ready" : "Review"}
                 </span>
               </div>
-              <pre className="mt-3 max-h-44 overflow-auto rounded-md border border-line bg-[#0c0e12] p-3 font-mono text-xs leading-5">
+              <pre className="mt-3 max-h-44 overflow-auto rounded-md border border-line bg-mist p-3 font-mono text-xs leading-5 shadow-[inset_0_1px_8px_rgba(0,0,0,0.35)]">
                 {remediation.patch.split("\n").map((line, i) => (
                   <div
                     key={i}
@@ -50,10 +50,10 @@ export function RemediationWorkspace({ analysis }: { analysis: GovGraphAnalysis 
               </pre>
               <p className="mt-3 text-sm leading-6 text-text-secondary">{remediation.rationale}</p>
               <div className="mt-3 flex gap-2">
-                <button className="rounded-md bg-accent px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-accent-glow">
+                <button className="rounded-md bg-accent px-3 py-1.5 text-xs font-semibold text-white transition-all hover:bg-accent-glow hover:shadow-glow">
                   Approve &amp; Open PR
                 </button>
-                <button className="rounded-md border border-line px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:bg-elevated hover:text-ink">
+                <button className="rounded-md border border-line px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:border-accent/40 hover:bg-elevated hover:text-ink">
                   Dismiss
                 </button>
               </div>

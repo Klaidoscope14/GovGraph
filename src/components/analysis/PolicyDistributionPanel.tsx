@@ -46,9 +46,9 @@ export function PolicyDistributionPanel({ analysis }: { analysis: GovGraphAnalys
         <div className="mt-3 space-y-3">
           {analysis.scoredFlows.slice(0, 5).map((flow) => (
             <div key={flow.pathId}>
-              <div className="mb-1 flex items-center justify-between text-xs">
-                <span className="max-w-[230px] truncate text-text-secondary">{flow.pathId}</span>
-                <span className="font-metric font-semibold">{flow.score}</span>
+              <div className="mb-1 flex items-center justify-between gap-3 text-xs">
+                <span className="min-w-0 flex-1 truncate text-text-secondary">{flow.pathId}</span>
+                <span className="shrink-0 font-metric font-semibold">{flow.score}</span>
               </div>
               <div className="h-2 rounded-full bg-line">
                 <div

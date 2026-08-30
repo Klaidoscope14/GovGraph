@@ -24,10 +24,23 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
-  background: var(--bg-deep);
+  min-height: 100vh;
   color: var(--text-primary);
+  background-color: var(--bg-deep);
+  /* Faint dot texture so large flat panels don't read as dead space on camera. */
+  background-image: radial-gradient(rgba(240, 236, 228, 0.025) 1px, transparent 1px);
+  background-size: 22px 22px;
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "cv11", "ss01";
 }
 
 button,
@@ -36,12 +49,78 @@ select {
   font: inherit;
 }
 
+::selection {
+  background: rgba(232, 119, 46, 0.28);
+  color: var(--text-primary);
+}
+
+input,
+textarea {
+  caret-color: var(--accent);
+}
+
+/* Keyboard focus ring — wins over the `focus:outline-none` utilities that
+   several inputs/buttons set, so tab navigation stays visible everywhere. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible,
+.react-flow__controls button:focus-visible {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 2px;
+  border-radius: 4px;
+  box-shadow: 0 0 0 4px rgba(232, 119, 46, 0.15);
+}
+
+/* Thin, theme-matched scrollbars for the sidebars, tables and diff panes. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #323a4c transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #323a4c;
+  border-radius: 999px;
+  border: 2px solid var(--bg-deep);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #454f66;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
 /* Glass card utility */
 .glass-card {
-  background: var(--bg-surface);
+  position: relative;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0) 120px),
+    var(--bg-surface);
   border: 1px solid var(--border);
-  border-radius: 0.5rem;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
+  border-radius: 0.625rem;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 12px 32px -12px rgba(0, 0, 0, 0.5);
 }
 
 .glow-border {
@@ -60,6 +139,8 @@ select {
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
   border: 1px solid var(--border);
   background: var(--bg-surface);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .react-flow__controls button {
@@ -74,6 +155,7 @@ select {
 
 .react-flow__minimap {
   background: var(--bg-surface);
+  border-radius: 8px;
 }
 
 .react-flow__attribution {

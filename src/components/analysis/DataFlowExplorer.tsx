@@ -227,7 +227,7 @@ export function DataFlowExplorer({ analysis }: { analysis: GovGraphAnalysis }) {
   }, [hubs, search, nodeById]);
 
   return (
-    <div className="glass-card relative flex h-full overflow-hidden">
+    <div className="glass-card relative flex h-full flex-col overflow-hidden lg:flex-row">
       <ExplorerSidebar
         analysis={analysis}
         hubs={filteredHubs}
@@ -248,20 +248,20 @@ export function DataFlowExplorer({ analysis }: { analysis: GovGraphAnalysis }) {
               {selectedNode ? selectedNode.label : "Sensitive Data Flow Graph"}
             </h2>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
             {RISK_LEGEND.map((item) => (
               <div key={item.label} className="flex items-center gap-1.5">
                 <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
-                <span className="text-[10px] text-text-secondary">{item.label}</span>
+                <span className="text-[11px] text-text-secondary">{item.label}</span>
               </div>
             ))}
-            <span className="ml-2 rounded-md border border-line bg-elevated px-2 py-1 text-xs text-text-secondary">
+            <span className="rounded-md border border-line bg-elevated px-2 py-1 text-xs text-text-secondary sm:ml-2">
               {analysis.nodes.length} nodes / {analysis.edges.length} edges
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 border-b border-line bg-elevated/40 px-4 py-2.5">
+        <div className="flex flex-wrap items-center gap-2 border-b border-line bg-elevated/40 px-4 py-2.5">
           <button
             className="inline-flex h-9 items-center gap-2 rounded-md bg-accent px-3 text-xs font-semibold text-white transition-colors hover:bg-accent-glow disabled:opacity-60"
             disabled={isRevealing}
@@ -284,12 +284,12 @@ export function DataFlowExplorer({ analysis }: { analysis: GovGraphAnalysis }) {
             <Maximize2 className="h-3.5 w-3.5" />
             Fit view
           </button>
-          <span className="ml-1 truncate text-[11px] text-text-secondary">
+          <span className="hidden truncate text-[11px] text-text-secondary xl:ml-1 xl:inline">
             Click a module sphere (or the tree) to expand it · click a leaf node for details
           </span>
         </div>
 
-        <div ref={canvasHostRef} className="relative min-h-[520px] flex-1 w-full">
+        <div ref={canvasHostRef} className="relative min-h-[360px] w-full flex-1 sm:min-h-[520px]">
           <ForceGraph3D
             ref={fgRef}
             graphData={graphData}
@@ -336,7 +336,7 @@ export function DataFlowExplorer({ analysis }: { analysis: GovGraphAnalysis }) {
           />
 
           {selectedNode && (
-            <div className="absolute right-4 top-4 w-[300px] rounded-lg border border-line bg-[#0f1219]/95 p-4 shadow-xl backdrop-blur-sm">
+            <div className="absolute right-3 top-3 w-[280px] max-w-[calc(100%-1.5rem)] animate-scale-in rounded-lg border border-line bg-surface/95 p-4 shadow-panel backdrop-blur-md sm:right-4 sm:top-4 sm:w-[300px]">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-1.5">
@@ -418,7 +418,7 @@ function ExplorerSidebar({
   onLeafClick: (nodeId: string) => void;
 }) {
   return (
-    <aside className="flex w-[260px] min-h-0 shrink-0 flex-col border-r border-line bg-surface/60">
+    <aside className="flex max-h-[40vh] w-full min-h-0 shrink-0 flex-col border-b border-line bg-surface/60 lg:max-h-none lg:w-[260px] lg:border-b-0 lg:border-r">
       <div className="border-b border-line px-3 py-3">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Explorer</h3>
         <div className="mt-3 grid grid-cols-2 gap-2">

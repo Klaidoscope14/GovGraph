@@ -27,7 +27,7 @@ export function DataFlowSummaryCard({ analysis }: { analysis: GovGraphAnalysis }
         </div>
       </div>
       <Link
-        className="mt-5 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-accent text-sm font-semibold text-white transition-colors hover:bg-accent-glow"
+        className="mt-5 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-accent text-sm font-semibold text-white transition-all hover:bg-accent-glow hover:shadow-glow"
         href={"/dashboard/data-flow" as Route}
       >
         Open Data Flow Explorer
@@ -39,8 +39,8 @@ export function DataFlowSummaryCard({ analysis }: { analysis: GovGraphAnalysis }
 
 function Stat({ label, value, color }: { label: string; value: number; color?: string }) {
   return (
-    <div className="rounded-md border border-line bg-surface px-3 py-2">
-      <div className="text-[10px] uppercase text-text-secondary">{label}</div>
+    <div className="rounded-md border border-line bg-surface px-3 py-2 transition-colors hover:border-accent/30">
+      <div className="text-[10px] uppercase tracking-wide text-text-secondary">{label}</div>
       <div className="mt-0.5 font-metric text-lg font-semibold" style={color ? { color } : undefined}>
         {value}
       </div>

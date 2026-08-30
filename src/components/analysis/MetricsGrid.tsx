@@ -3,7 +3,7 @@ import type { GovGraphAnalysis, Severity } from "@/lib/govgraph/types";
 
 export function MetricsGrid({ analysis }: { analysis: GovGraphAnalysis }) {
   return (
-    <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+    <section className="grid animate-fade-in gap-3 sm:grid-cols-3 xl:grid-cols-6">
       <RiskGauge score={analysis.summary.overallRisk} />
       <Metric label="Open findings" value={analysis.summary.openFindings} tone="high" />
       <Metric label="Critical" value={analysis.summary.criticalFindings} tone="critical" />
@@ -21,8 +21,8 @@ function RiskGauge({ score }: { score: number }) {
   const color = score >= 80 ? severityColors.critical : score >= 60 ? severityColors.high : score >= 40 ? severityColors.medium : severityColors.low;
 
   return (
-    <div className="glass-card flex flex-col items-center justify-center px-4 py-3">
-      <div className="text-xs font-medium uppercase text-text-secondary">Overall risk</div>
+    <div className="glass-card flex flex-col items-center justify-center px-4 py-3 transition-colors hover:border-accent/30">
+      <div className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">Overall risk</div>
       <div className="relative mt-2">
         <svg width="88" height="88" viewBox="0 0 88 88">
           <circle cx="44" cy="44" r={radius} fill="none" stroke="#2a3040" strokeWidth="6" />
@@ -58,8 +58,8 @@ function Metric({
   tone: Severity;
 }) {
   return (
-    <div className="glass-card px-4 py-3">
-      <div className="text-xs font-medium uppercase text-text-secondary">{label}</div>
+    <div className="glass-card px-4 py-3 transition-colors hover:border-accent/30">
+      <div className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">{label}</div>
       <div className="mt-2 flex items-baseline gap-1">
         <span className="font-metric text-3xl font-semibold" style={{ color: severityColors[tone] }}>
           {value}

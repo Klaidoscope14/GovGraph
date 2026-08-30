@@ -16,7 +16,7 @@ export default async function ReportsPage() {
         title="Export auditor-ready evidence"
         description="Package policy violations, affected fields, source-to-sink paths, and narratives for compliance review."
       />
-      <div className="mx-auto grid max-w-[1480px] gap-5 px-5 py-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+      <div className="mx-auto grid max-w-[1480px] gap-5 px-4 py-5 sm:px-5 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_420px]">
         <section className="glass-card">
           <div className="flex items-center gap-2 border-b border-line px-4 py-3">
             <FileText className="h-4 w-4 text-accent" />
@@ -65,7 +65,7 @@ function ReportLink({
   tone?: Severity;
 }) {
   return (
-    <a className="rounded-lg border border-line bg-surface p-4 transition-colors hover:bg-elevated" href={href}>
+    <a className="rounded-lg border border-line bg-surface p-4 transition-colors hover:border-accent/40 hover:bg-elevated" href={href}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold">{label}</h3>

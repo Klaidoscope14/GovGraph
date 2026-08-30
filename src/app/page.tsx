@@ -85,18 +85,18 @@ export default function LandingPage() {
         <div className="absolute bottom-1/4 right-1/4 h-[400px] w-[400px] rounded-full bg-accent/3 blur-[100px]" />
       </div>
 
-      <div className="relative z-10 w-full max-w-lg">
+      <div className="relative z-10 w-full max-w-lg animate-fade-in">
         <div className="flex flex-col items-center text-center">
-          <div className="grid h-16 w-16 place-items-center rounded-2xl border border-accent/30 bg-accent-subtle shadow-glow">
+          <div className="grid h-16 w-16 place-items-center rounded-2xl border border-accent/30 bg-accent-subtle shadow-glow animate-pulse-glow">
             <ShieldCheck className="h-8 w-8 text-accent" />
           </div>
-          <h1 className="mt-6 font-heading text-4xl font-bold tracking-tight">GovGraph</h1>
+          <h1 className="mt-6 font-heading text-4xl font-bold tracking-tight sm:text-5xl">GovGraph</h1>
           <p className="mt-3 max-w-md text-base leading-relaxed text-text-secondary">
             Continuous source-code-level data governance and compliance for legacy codebases.
           </p>
         </div>
 
-        <div className="mt-8 grid grid-cols-3 gap-3">
+        <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
           <Feature icon={<GitBranch className="h-4 w-4" />} label="Data Flow Tracing" />
           <Feature icon={<Lock className="h-4 w-4" />} label="Policy Engine" />
           <Feature icon={<Eye className="h-4 w-4" />} label="Risk Scoring" />

@@ -67,15 +67,15 @@ export function ComplianceDashboard({
         }
       />
 
-      <div className="mx-auto max-w-[1480px] px-5 py-5">
+      <div className="mx-auto max-w-[1480px] px-4 py-5 sm:px-5 lg:px-6">
         <MetricsGrid analysis={analysis} />
 
-        <section className="mt-5 grid gap-5 xl:grid-cols-2">
+        <section className="mt-5 grid gap-5 lg:grid-cols-2">
           <DataFlowSummaryCard analysis={analysis} />
           <PolicyDistributionPanel analysis={analysis} />
         </section>
 
-        <section className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <section className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_420px]">
           <FindingsWorkspace analysis={analysis} />
           <RemediationWorkspace analysis={analysis} />
         </section>

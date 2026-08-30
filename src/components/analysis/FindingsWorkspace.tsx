@@ -37,7 +37,7 @@ export function FindingsWorkspace({
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="h-4 w-4 text-text-secondary" />
           <select
-            className="h-9 rounded-md border border-line bg-surface px-2 text-sm text-ink"
+            className="h-9 cursor-pointer rounded-md border border-line bg-surface px-2 text-sm text-ink transition-colors hover:border-accent/40"
             value={selectedSeverity}
             onChange={(event) => setSelectedSeverity(event.target.value as Severity | "all")}
           >
@@ -56,7 +56,7 @@ export function FindingsWorkspace({
           return (
             <article key={finding.id}>
               <div
-                className="grid cursor-pointer gap-3 px-4 py-4 transition-colors hover:bg-elevated/50 lg:grid-cols-[120px_1fr_82px]"
+                className="grid cursor-pointer gap-x-3 gap-y-2 px-4 py-4 transition-colors hover:bg-elevated/50 sm:grid-cols-[110px_1fr_72px] lg:grid-cols-[120px_1fr_82px]"
                 onClick={() => setExpandedId(isExpanded ? null : finding.id)}
               >
                 <div>
